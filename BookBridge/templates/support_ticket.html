@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Support ticket: {{ ticket.subject }}{% endblock %}
+{% block content %}
+<section class="dashboard-head">
+  <div class="container">
+    <p class="eyebrow eyebrow-light">Private support ticket #{{ ticket.id }}</p>
+    <h1>{{ ticket.subject }}</h1>
+    <p>{{ ticket.category }} · <span class="status-pill status-ticket-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span></p>
+  </div>
+</section>
+<section class="container support-thread">
+  <div class="conversation-toolbar">
+    <a class="text-link" href="{{ url_for('admin_support_tickets') if current_user['is_admin'] else url_for('support_tickets') }}">← {{ 'All support tickets' if current_user['is_admin'] else 'My support tickets' }}</a>
+    {% if ticket.book_title %}<span>Related listing: {{ ticket.book_title }}</span>{% endif %}
+  </div>
+  {% if current_user['is_admin'] %}<aside class="ticket-customer-contact"><strong>Customer</strong><span>{{ ticket.name }}</span><a href="mailto:{{ ticket.email }}">{{ ticket.email }}</a></aside>{% endif %}
+  <article class="support-message">
+    <div class="message-meta"><strong>{{ ticket.name }}</strong><time datetime="{{ ticket.created_at }}">{{ ticket.created_at }}</time></div>
+    <p class="support-category">{{ ticket.category }}</p>
+    <p class="support-message-body">{{ ticket.description }}</p>
+  </article>
+  {% for reply in replies %}
+    <article class="support-message {% if reply.sender_is_admin %}support-message-staff{% endif %}">
+      <div class="message-meta"><strong>{{ reply.sender_name }}{% if reply.sender_is_admin %} · Support{% endif %}</strong><time datetime="{{ reply.created_at }}">{{ reply.created_at }}</time></div>
+      <p class="support-message-body">{{ reply.body }}</p>
+    </article>
+  {% endfor %}
+  {% if current_user['is_admin'] and internal_notes %}
+    <section class="internal-notes"><h2>Internal admin notes <span>Private to administrators</span></h2>
+      {% for note in internal_notes %}<article class="internal-note"><div class="message-meta"><strong>{{ note.admin_name }}</strong><time datetime="{{ note.created_at }}">{{ note.created_at }}</time></div><p>{{ note.body }}</p></article>{% endfor %}
+    </section>
+  {% endif %}
+  {% if current_user['is_admin'] or ticket.status != 'Closed' %}
+  <form class="form-panel support-reply-form" method="post">
+    {{ csrf() }}
+    {% if current_user['is_admin'] %}
+      <label class="form-field" for="ticket-status"><span>Ticket status</span>
+        <select id="ticket-status" name="status" required>
+          {% for status in support_statuses %}<option value="{{ status }}" {% if ticket.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="form-field" for="ticket-reply"><span>Reply to {{ ticket.name }}</span><textarea id="ticket-reply" name="body" rows="5" maxlength="5000" placeholder="Write a support response"></textarea></label>
+      <label class="form-field" for="ticket-internal-note"><span>Internal admin note <small>(only visible to administrators)</small></span><textarea id="ticket-internal-note" name="internal_note" rows="3" maxlength="5000" placeholder="Add a private case note"></textarea></label>
+      <button class="button" type="submit">Save ticket update</button>
+    {% else %}
+      <label class="form-field" for="ticket-reply"><span>Reply to Support</span><textarea id="ticket-reply" name="body" rows="5" maxlength="5000" required placeholder="Add details or reply to the support team"></textarea></label>
+      <button class="button" type="submit">Send reply</button>
+    {% endif %}
+  </form>
+  {% else %}<p class="ticket-closed-note">This ticket is closed. Contact support again if you need further help.</p>{% endif %}
+</section>
+{% endblock %}

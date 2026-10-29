@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<section class="dashboard-head">
+  <div class="container">
+    <p class="eyebrow eyebrow-light">Your BookBridge</p>
+    <h1>Messages</h1>
+    <p>Private conversations about books you enquired about or listed.</p>
+  </div>
+</section>
+<section class="container message-content">
+  <div class="section-heading">
+    <div><p class="eyebrow">Buyer &amp; seller conversations</p><h2>Your inbox</h2></div>
+    <span class="count-pill">{{ conversations|length }}</span>
+  </div>
+  {% if conversations %}
+    <div class="conversation-list">
+      {% for conversation in conversations %}
+        <article class="conversation-card">
+          <div class="conversation-card-main">
+            <p class="eyebrow">{{ 'You are the buyer' if conversation.sender_id == current_user['id'] else 'You are the listing owner' }}</p>
+            <h3><a href="{{ url_for('book_detail', book_id=conversation.book_id) }}">{{ conversation.book_title }}</a></h3>
+            <p class="conversation-participant">
+              With {{ conversation.owner_name if conversation.sender_id == current_user['id'] else conversation.buyer_name }}
+            </p>
+            <p class="conversation-preview">{{ conversation.latest_message }}</p>
+            <time datetime="{{ conversation.latest_at }}">{{ conversation.latest_at }}</time>
+          </div>
+          <div class="conversation-card-action">
+            {% if conversation.unread_count %}
+              <span class="unread-label">{{ conversation.unread_count }} unread</span>
+            {% endif %}
+            <a class="button button-small" href="{{ url_for('conversation', enquiry_id=conversation.enquiry_id) }}">Open chat</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-inline">Conversations will appear here after you enquire about a book or receive an enquiry.</p>
+  {% endif %}
+</section>
+{% endblock %}

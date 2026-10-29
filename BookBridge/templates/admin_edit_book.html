@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Edit listing: {{ book.title }}{% endblock %}
+{% block content %}
+<section class="container form-page admin-edit-page">
+  <div class="form-intro"><p class="eyebrow">{% if page_heading %}{{ page_heading }}{% else %}Administrator moderation{% endif %}</p><h1>Edit a <em>book listing.</em></h1>{% if not page_heading %}<p>Listing owner: {{ book.owner_name }} · {{ book.owner_email }}</p>{% endif %}</div>
+  <form class="form-panel" method="post" enctype="multipart/form-data" data-image-form>
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="form-field"><span>Book title</span><input name="title" required maxlength="120" value="{{ request.form.get('title', book.title) }}"></label>
+      <label class="form-field"><span>Author</span><input name="author" required maxlength="100" value="{{ request.form.get('author', book.author) }}"></label>
+      <label class="form-field"><span>Category</span><select name="category" required>{% for category in categories %}<option value="{{ category }}" {% if request.form.get('category', book.category) == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select></label>
+      <label class="form-field"><span>Condition</span><select name="condition" required>{% for condition in conditions %}<option value="{{ condition }}" {% if request.form.get('condition', book.condition) == condition %}selected{% endif %}>{{ condition }}</option>{% endfor %}</select></label>
+      <label class="form-field"><span>Location</span><input name="location" required maxlength="100" value="{{ request.form.get('location', book.location) }}"></label>
+      {% if book.listing_type == 'sale' %}<label class="form-field"><span>Price (₹)</span><input name="price" type="number" min="1" max="100000" step="0.01" required value="{{ request.form.get('price', book.price) }}"></label>{% endif %}
+      <label class="form-field form-field-wide"><span>Description</span><textarea name="description" rows="5" maxlength="1000">{{ request.form.get('description', book.description) }}</textarea></label>
+      {% if is_admin %}
+      <div class="form-field form-field-wide upload-control">
+        <label for="moderated-book-image">Book photo</label>
+        {% if book.image_filename %}<img class="dashboard-book-thumb" src="{{ url_for('uploaded_image', filename=book.image_filename) }}" alt="Current photo of {{ book.title }}" loading="lazy"><label class="image-remove-option"><input type="checkbox" name="remove_image" value="1"> Remove current photo</label>{% else %}<p class="muted">No photo is currently attached.</p>{% endif %}
+        <input id="moderated-book-image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,image/jpeg,image/png,image/webp,image/gif,image/bmp" data-image-upload>
+        <small>Select a replacement photo, or mark the current photo for removal. JPG, PNG, WEBP, GIF or BMP · maximum 10 MB.</small>
+        <p class="upload-feedback" data-upload-feedback role="status" aria-live="polite"></p>
+        <img class="upload-preview" data-image-preview alt="Preview of replacement book photo" hidden>
+      </div>
+      {% endif %}
+    </div>
+    <div class="form-actions"><button class="button" type="submit">Save listing changes</button><a class="text-link" href="{{ url_for('dashboard') if page_heading else url_for('admin_dashboard') }}">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}

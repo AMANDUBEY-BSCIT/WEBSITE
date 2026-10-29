@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}Help Center{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow">BookBridge support</p>
+    <h1>Help Center</h1>
+    <p>Practical guides and answers for sharing, finding and exchanging books.</p>
+  </div>
+</section>
+<section class="container help-page">
+  {% if current_user and current_user['is_admin'] %}
+  <section class="help-section admin-help-panel" id="manage-support">
+    <p class="eyebrow">Administrator workspace</p>
+    <div class="section-heading"><div><h2>Manage Support Requests</h2><p>Review customer complaints, reply privately, update status and add staff-only notes.</p></div><a class="button button-small" href="{{ url_for('admin_support_tickets') }}">Full support queue</a></div>
+    <form class="admin-filter-form" method="get" action="{{ url_for('help_center') }}#manage-support">
+      <label class="sr-only" for="help-ticket-search">Search support requests</label><input id="help-ticket-search" name="q" maxlength="100" value="{{ ticket_query }}" placeholder="Subject, customer, email or complaint">
+      <label class="sr-only" for="help-ticket-status">Filter support status</label><select id="help-ticket-status" name="status"><option value="">All statuses</option>{% for status in ('Open', 'In Progress', 'Resolved', 'Closed') %}<option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>
+      <button class="button button-small" type="submit">Search tickets</button><a class="text-link" href="{{ url_for('help_center') }}#manage-support">Clear</a>
+    </form>
+    {% if admin_tickets %}
+    <div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Category</th><th>Listing</th><th>Status</th><th>Updated</th></tr></thead><tbody>
+      {% for ticket in admin_tickets %}<tr><td><a class="table-link" href="{{ url_for('support_ticket', ticket_id=ticket.id) }}">{{ ticket.subject }}</a></td><td>{{ ticket.name }}<small><a href="mailto:{{ ticket.email }}">{{ ticket.email }}</a></small></td><td>{{ ticket.category }}</td><td>{{ ticket.book_title or '—' }}</td><td><span class="status-pill status-ticket-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span></td><td>{{ ticket.updated_at[:10] }}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<p class="empty-inline">No support requests match those filters.</p>{% endif %}
+  </section>
+  {% elif current_user %}
+  <aside class="help-member-support">
+    <p>Need help with an account or a listing?</p>
+    <a class="button button-small" href="{{ url_for('support') }}">Submit a private support request</a>
+    <a class="text-link" href="{{ url_for('support_tickets') }}">View your requests and replies</a>
+  </aside>
+  {% endif %}
+  <form class="help-search" role="search" onsubmit="return false">
+    <label class="form-field" for="help-search">
+      <span>Search help articles and common problems</span>
+      <input id="help-search" type="search" placeholder="Try “upload photo” or “forgot password”" data-help-search>
+    </label>
+    <p class="help-search-count" aria-live="polite" data-help-count>Showing all help articles.</p>
+  </form>
+
+  <nav class="help-categories" aria-label="Help topics">
+    <a href="#getting-started">Getting started</a>
+    <a href="#books-and-listings">Books and listings</a>
+    <a href="#requests-and-exchanges">Requests and exchanges</a>
+    <a href="#account-and-messages">Account and messages</a>
+    <a href="#troubleshooting">Troubleshooting</a>
+  </nav>
+
+  <section class="help-section" id="getting-started">
+    <p class="eyebrow">How BookBridge works</p>
+    <h2>Getting started</h2>
+    <article class="help-article" data-help-item>
+      <h3>About BookBridge</h3>
+      <p>BookBridge is a community website for discovering, donating, requesting, exchanging and finding affordable second-hand books. Members arrange any hand-off or payment directly; the site does not process payments.</p>
+      <a class="text-link" href="{{ url_for('about') }}">Read About BookBridge</a>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Create an account, sign in and sign out</h3>
+      <ol>
+        <li>Choose <a href="{{ url_for('signup') }}">Sign Up</a>, enter your name and email, and choose a password of at least 8 characters.</li>
+        <li>Use <a href="{{ url_for('login') }}">Login</a> with that email and password to open your dashboard.</li>
+        <li>To sign out, use <strong>Log out</strong> in the navigation. It is a protected form action.</li>
+        <li>If you forget your password, use <a href="{{ url_for('forgot_password') }}">Forgot password?</a>, request an email code, verify it, then set a new password. Email delivery requires the site administrator to configure SMTP.</li>
+      </ol>
+    </article>
+  </section>
+
+  <section class="help-section" id="books-and-listings">
+    <p class="eyebrow">Browse, share and sell</p>
+    <h2>Books and listings</h2>
+    <article class="help-article" data-help-item>
+      <h3>Browse books and contact an owner</h3>
+      <ol>
+        <li>Open <a href="{{ url_for('browse') }}">Browse Books</a> and search by title, author or description. You can also filter by category, condition, location or listing type.</li>
+        <li>Open a book card to read its description, condition, location, price or exchange information.</li>
+        <li>Sign in and send an enquiry from an active listing. The owner receives it in their dashboard and Messages inbox; use the conversation to continue the discussion.</li>
+      </ol>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Donate a book</h3>
+      <ol>
+        <li>Sign in and choose <a href="{{ url_for('donate') }}">Donate a Book</a>.</li>
+        <li>Enter the title, author, category, condition and location; add a description if useful.</li>
+        <li>A photo is optional. Supported formats are JPG, JPEG, PNG, WEBP, GIF and BMP; each image must be 10 MB or smaller.</li>
+        <li>After submitting, find the listing in your dashboard. Use <strong>Hide</strong> to take it out of public browsing or <strong>Publish</strong> to show it again.</li>
+      </ol>
+      <p>You can edit your listing or remove it from your dashboard. Removal hides the post and preserves related records.</p>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>List a book for sale</h3>
+      <ol>
+        <li>Sign in and select <a href="{{ url_for('sell') }}">List for sale</a> from your dashboard or the listing menu.</li>
+        <li>Complete the book details and enter a price above ₹0 and no more than ₹100,000. A supported photo is optional.</li>
+        <li>Submit, then use the dashboard to edit, hide, republish or remove your listing. Removed posts are hidden from public browsing.</li>
+      </ol>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Find affordable books under ₹200</h3>
+      <ol>
+        <li>Open <a href="{{ url_for('low_cost') }}">Under ₹200</a>.</li>
+        <li>Choose the ₹50, ₹100 or ₹200 maximum-price view. The page shows active sale listings at or below that limit, sorted by price.</li>
+        <li>Check the price on the book card and detail page, then contact the owner through the listing if you are interested.</li>
+      </ol>
+    </article>
+  </section>
+
+  <section class="help-section" id="requests-and-exchanges">
+    <p class="eyebrow">Ask and trade</p>
+    <h2>Requests and exchanges</h2>
+    <article class="help-article" data-help-item>
+      <h3>Request a book</h3>
+      <ol>
+        <li>Open <a href="{{ url_for('requests_page') }}">Request a Book</a> to view active community requests. Sign in to post your own request.</li>
+        <li>Enter the book title, category and location; author, details and an image attachment are optional. The request appears in the public request list.</li>
+        <li>Manage your own request from the dashboard using <strong>Close</strong> or <strong>Reopen</strong>.</li>
+      </ol>
+      <p><strong>Current limitation:</strong> request cards do not have a reply or owner-contact workflow. A request is visible to the community, but members cannot respond through the site yet.</p>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Exchange books</h3>
+      <ol>
+        <li>Sign in and use <a href="{{ url_for('list_exchange') }}">List for exchange</a>. Add your book details and describe what you would like in return in the description.</li>
+        <li>Open another member's active exchange listing. Select one of your own active exchange books and add an optional note to make an offer.</li>
+        <li>The listing owner can accept or reject the offer from their dashboard. You can track sent offers there too.</li>
+      </ol>
+      <p>An exchange offer note is the built-in way to make contact about a swap; sending an offer does not open a separate chat. Book details can also be discussed through an enquiry on an active listing.</p>
+    </article>
+  </section>
+
+  <section class="help-section" id="account-and-messages">
+    <p class="eyebrow">Your account activity</p>
+    <h2>Dashboard and messages</h2>
+    <article class="help-article" data-help-item>
+      <h3>Use your dashboard</h3>
+      <p>The dashboard shows your book listings and visibility, your posted requests and their open/closed state, exchange offers sent and received, enquiries, messages and support tickets. From there you can edit, hide, republish or remove your own listings, edit or remove requests, decide incoming exchange offers and open enquiry conversations.</p>
+      <a class="text-link" href="{{ url_for('dashboard') if current_user else url_for('login') }}">Open your dashboard</a>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Enquiries and private buyer-seller messages</h3>
+      <ol>
+        <li>Sign in and send an enquiry from an active book detail page. The enquiry goes to that book's owner.</li>
+        <li>Open <a href="{{ url_for('messages') if current_user else url_for('login') }}">Messages</a> to see conversations about listings you enquired about or own.</li>
+        <li>Choose <strong>Open chat</strong> to see the original enquiry and message history, then write a reply. Only the two conversation participants can access it.</li>
+      </ol>
+    </article>
+    <article class="help-article" data-help-item>
+      <h3>Contact Customer Support and track a ticket</h3>
+      <p>Sign in to submit a private ticket with a category, subject, details and optional active listing. Open <a href="{{ url_for('support_tickets') if current_user else url_for('login', next=url_for('support')) }}">My support tickets</a> to read replies and respond. Only you and authorized administrators can view that ticket. For an account or sign-in problem, use the public <a href="{{ url_for('contact') }}">Contact &amp; feedback</a> form instead.</p>
+    </article>
+  </section>
+
+  <section class="help-section" id="troubleshooting">
+    <p class="eyebrow">Step-by-step fixes</p>
+    <h2>Common problems</h2>
+    <details class="help-faq" data-help-item>
+      <summary>I cannot log in or sign up</summary>
+      <ol><li>Check for typing errors in your email and password; passwords are case-sensitive.</li><li>Sign-up requires a valid-looking email and a password between 8 and 128 characters. An email already registered cannot be used for a second account.</li><li>If the problem continues, send details through the public <a href="{{ url_for('contact') }}">Contact &amp; feedback</a> form.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I forgot my password</summary>
+      <ol><li>Open <a href="{{ url_for('forgot_password') }}">Forgot password?</a> and request a reset code for your account email.</li><li>Check your inbox and spam folder, then enter the code before it expires and choose a new password.</li><li>If no email arrives, password-reset email delivery may not be configured. Contact the administrator using <a href="{{ url_for('contact') }}">Contact &amp; feedback</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>My book listing is not appearing</summary>
+      <ol><li>Sign in and check that the listing is marked Active in your dashboard; use Publish if it is hidden.</li><li>Check the browse filters, listing type, location and price limit.</li><li>Listings must have a valid category, condition and required book details. If it still does not appear, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I cannot submit a donation or exchange listing</summary>
+      <ol><li>Make sure you are signed in and all required book details are filled in, including condition, category and location.</li><li>For an exchange, describe what you want in return. Check any image is a supported format and no larger than 10 MB.</li><li>Correct the on-page validation message and retry. If it remains, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>My book request is not visible</summary>
+      <ol><li>After submitting, check the public <a href="{{ url_for('requests_page') }}">Request a Book</a> list and your dashboard.</li><li>Confirm you supplied a title, category and location and that your request is still open.</li><li>Requests do not currently have a reply/contact feature. If your own request is missing, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>My uploaded image was rejected or is too large</summary>
+      <ol><li>Use JPG, JPEG, PNG, WEBP, GIF or BMP and keep each image at or below 10 MB.</li><li>Make sure the file extension matches a valid, readable image; renaming a different file type is not enough.</li><li>Choose another file and retry. Images are optional. If a valid image still fails, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I cannot send or receive messages</summary>
+      <ol><li>Sign in and open Messages or the relevant enquiry from your dashboard.</li><li>Only the enquiry sender and listing owner can open that conversation; check you are signed into the correct account.</li><li>Refresh the conversation and check the message is not blank. If the issue remains, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I cannot contact a book owner</summary>
+      <ol><li>Sign in, then open an active listing owned by someone else.</li><li>Use its enquiry form. You cannot enquire about your own listing or a hidden listing.</li><li>Continue the conversation through Messages. If the enquiry form fails, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>A page shows an error or does not load</summary>
+      <ol><li>Refresh the page and check your internet connection. Open the link again from the site navigation.</li><li>Sign in if the page is for members, and confirm the listing or conversation is still available to your account.</li><li>If it keeps failing, include the page address and what you were doing in a <a href="{{ url_for('support') }}">support ticket</a>; use <a href="{{ url_for('contact') }}">Contact &amp; feedback</a> if you cannot sign in.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I want to edit or remove my listing</summary>
+      <ol><li>Open your dashboard to edit a listing or use Hide to take it out of public browsing; use Publish to show it again.</li><li>Use Delete to remove it from public browsing. BookBridge keeps the record for related conversations and administration.</li><li>For help with a specific listing, select it in a <a href="{{ url_for('support') }}">support ticket</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I cannot see another user's response</summary>
+      <ol><li>For a book enquiry, open Messages and choose the matching conversation while signed into the account that sent or received it.</li><li>Exchange offers are shown in the dashboard under sent or received offers; the other member's decision updates the status there.</li><li>Public book requests do not currently support replies. If an enquiry conversation is missing, <a href="{{ url_for('support') }}">contact support</a>.</li></ol>
+    </details>
+    <details class="help-faq" data-help-item>
+      <summary>I have a safety concern or want to report suspicious activity</summary>
+      <ol><li>Do not share passwords or sensitive account details with another member. BookBridge does not process payments; arrange any hand-off directly with care.</li><li>Sign in and choose the <strong>Safety concern</strong> category in <a href="{{ url_for('support') }}">Contact Customer Support</a>. Include the listing when available and describe what happened without posting private information publicly.</li><li>Only authorized administrators can review the private ticket. There is no separate public report button.</li></ol>
+    </details>
+    <p class="help-no-results" data-help-empty hidden>No matching help articles. Try a different search or <a href="{{ url_for('support') }}">contact support</a>.</p>
+  </section>
+
+  <aside class="help-contact-callout">
+    <div><p class="eyebrow">Still need a hand?</p><h2>Need more help? Contact Support</h2><p>Private tickets are available to signed-in members. If you cannot sign in, use the public contact form.</p></div>
+    <div class="help-contact-actions">
+      <a class="button" href="{{ url_for('support') }}">Contact Customer Support</a>
+      <a class="text-link" href="{{ url_for('contact') }}">Contact &amp; feedback</a>
+    </div>
+  </aside>
+</section>
+{% endblock %}

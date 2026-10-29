@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% from '_icon.html' import icon %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+<section class="dashboard-head">
+  <div class="container">
+    <p class="eyebrow eyebrow-light">Your BookBridge</p>
+    <h1>Welcome, {{ current_user['name'] }}.</h1>
+    <p>Your books, requests and conversations in one place.</p>
+  </div>
+</section>
+<section class="container dashboard-content">
+  {% if current_user['is_admin'] %}
+  <section class="admin-management-panel" id="admin-management">
+    <div class="section-heading"><div><p class="eyebrow eyebrow-light">Administrator workspace</p><h2>Community management</h2><p>Secure tools for community content, members and support.</p></div><a class="button button-small" href="{{ url_for('admin_dashboard') }}">{{ icon('shield') }} Open admin console</a></div>
+    <div class="admin-stat-grid admin-dashboard-stats" id="admin-statistics">
+      {% for key, label in [
+        ('users','Total users'),('books','Total book listings'),
+        ('donations','Donations'),('exchanges','Exchanges'),
+        ('sales','Sales listings'),('requests','Book requests'),
+        ('open_tickets','Open support tickets'),('resolved_tickets','Resolved tickets')
+      ] %}
+      <article class="admin-stat-card"><span class="stat-icon">{{ icon('book') }}</span><span class="stat-label">{{ label }}</span><strong>{{ admin_stats[key] }}</strong></article>
+      {% endfor %}
+    </div>
+    <div class="admin-management-grid">
+      <a href="{{ url_for('admin_dashboard') }}#manage-books"><span>{{ icon('shelf') }}</span><strong>Manage All Books</strong></a>
+      <a href="{{ url_for('admin_dashboard') }}#manage-books"><span>{{ icon('book') }}</span><strong>Manage All Posts</strong></a>
+      <a href="{{ url_for('admin_dashboard', type='donation') }}#manage-books"><span>{{ icon('book-heart') }}</span><strong>Manage Donations</strong></a>
+      <a href="{{ url_for('admin_dashboard', type='exchange') }}#manage-books"><span>{{ icon('repeat') }}</span><strong>Manage Exchanges</strong></a>
+      <a href="{{ url_for('admin_dashboard', type='sale') }}#manage-books"><span>{{ icon('tag') }}</span><strong>Manage Book Sales</strong></a>
+      <a href="{{ url_for('admin_dashboard') }}#manage-requests"><span>{{ icon('help-circle') }}</span><strong>Manage Book Requests</strong></a>
+      {% if is_designated_admin %}<a href="{{ url_for('admin_users') }}"><span>{{ icon('user') }}</span><strong>Manage Users</strong></a>{% endif %}
+      <a href="{{ url_for('help_center') }}#manage-support"><span>{{ icon('life-buoy') }}</span><strong>Manage Support Requests</strong><small>{{ admin_stats.open_tickets }} open</small></a>
+      <a href="{{ url_for('admin_dashboard') }}#admin-statistics"><span>{{ icon('chart') }}</span><strong>View Reports and Statistics</strong></a>
+      <a href="{{ url_for('admin_message_reports') }}"><span>{{ icon('message') }}</span><strong>Reported Messages</strong><small>{{ admin_stats.reports }} pending report{{ '' if admin_stats.reports == 1 else 's' }}</small></a>
+    </div>
+    {% if recent_admin_actions %}
+    <section class="admin-recent-actions"><h3>Recent moderation activity</h3>
+      {% for action in recent_admin_actions %}<p><strong>{{ action.admin_name }}</strong> · {{ action.action|replace('_',' ')|title }} · {{ action.target_type|title }} #{{ action.target_id }} · {{ action.created_at[:16] }}</p>{% endfor %}
+    </section>
+    {% endif %}
+    <section class="admin-dashboard-support">
+      <div class="section-heading"><div><p class="eyebrow">Customer care</p><h3>Latest support requests</h3></div><a class="text-link" href="{{ url_for('help_center') }}#manage-support">Manage all support →</a></div>
+      {% if admin_dashboard_tickets %}<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Status</th><th>Updated</th></tr></thead><tbody>{% for ticket in admin_dashboard_tickets %}<tr><td><a class="table-link" href="{{ url_for('support_ticket', ticket_id=ticket.id) }}">{{ ticket.subject }}</a></td><td><span class="status-pill status-ticket-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span></td><td>{{ ticket.updated_at[:10] }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty-inline">No support requests yet.</p>{% endif %}
+    </section>
+  </section>
+  {% endif %}
+  <div class="dashboard-tiles">
+    <a class="dashboard-tile" href="{{ url_for('dashboard', type='donation') }}#my-listings"><span class="tile-icon">{{ icon('book-heart') }}</span><span class="tile-label">My Donated Books</span><strong>{{ listing_totals.get('donation', 0) }}</strong><small>See your donation listings</small></a>
+    <a class="dashboard-tile" href="{{ url_for('dashboard', type='exchange') }}#my-listings"><span class="tile-icon">{{ icon('repeat') }}</span><span class="tile-label">My Exchange Listings</span><strong>{{ listing_totals.get('exchange', 0) }}</strong><small>{{ pending_exchange_count }} offer{{ '' if pending_exchange_count == 1 else 's' }} awaiting response</small></a>
+    <a class="dashboard-tile" href="{{ url_for('dashboard', type='sale') }}#my-listings"><span class="tile-icon">{{ icon('tag') }}</span><span class="tile-label">My Books for Sale</span><strong>{{ listing_totals.get('sale', 0) }}</strong><small>See your sale listings</small></a>
+    <a class="dashboard-tile" href="#my-requests"><span class="tile-icon">{{ icon('help-circle') }}</span><span class="tile-label">My Book Requests</span><strong>{{ my_requests|length }}</strong><small>Manage open requests</small></a>
+    <a class="dashboard-tile" href="{{ url_for('messages') }}"><span class="tile-icon">{{ icon('message') }}</span><span class="tile-label">My Messages</span><strong>{{ unread_message_count }}</strong><small>Unread conversations</small></a>
+    <a class="dashboard-tile" href="{{ url_for('support_tickets') }}"><span class="tile-icon">{{ icon('life-buoy') }}</span><span class="tile-label">My Support Tickets</span><strong>{{ ticket_total }}</strong><small>Track replies and status</small></a>
+    <a class="dashboard-tile" href="{{ url_for('profile') }}"><span class="tile-icon">{{ icon('user') }}</span><span class="tile-label">My Profile</span><strong class="tile-arrow">↗</strong><small>Manage account details</small></a>
+  </div>
+  <div class="dashboard-actions">
+    <a class="button button-small" href="{{ url_for('donate') }}">＋ Donate a book</a>
+    <a class="button button-small button-outline" href="{{ url_for('sell') }}">List for sale</a>
+    <a class="button button-small button-outline" href="{{ url_for('list_exchange') }}">List for exchange</a>
+    <a class="button button-small button-outline" href="{{ url_for('requests_page') }}">Request a book</a>
+  </div>
+  <section class="dashboard-section" id="my-listings">
+    <div class="section-heading"><div><p class="eyebrow">Your shelf</p><h2>My listings</h2></div><span class="count-pill">{{ listings|length }}{% if listing_filter %} · {{ listing_filter|title }}{% endif %}</span></div>
+    <div class="listing-filter-links">
+      <a class="{% if not listing_filter %}is-selected{% endif %}" href="{{ url_for('dashboard') }}#my-listings">All</a>
+      <a class="{% if listing_filter == 'donation' %}is-selected{% endif %}" href="{{ url_for('dashboard', type='donation') }}#my-listings">Donations ({{ listing_totals.get('donation', 0) }})</a>
+      <a class="{% if listing_filter == 'exchange' %}is-selected{% endif %}" href="{{ url_for('dashboard', type='exchange') }}#my-listings">Exchanges ({{ listing_totals.get('exchange', 0) }})</a>
+      <a class="{% if listing_filter == 'sale' %}is-selected{% endif %}" href="{{ url_for('dashboard', type='sale') }}#my-listings">For sale ({{ listing_totals.get('sale', 0) }})</a>
+    </div>
+    {% if listings %}
+    <div class="table-wrap"><table><thead><tr><th>Book</th><th>Type</th><th>Price</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      {% for book in listings %}
+      <tr>
+        <td>{% if book.image_filename %}<img class="dashboard-book-thumb" src="{{ url_for('uploaded_image', filename=book.image_filename) }}" alt="Photo of {{ book.title }}" loading="lazy">{% endif %}<a class="table-link" href="{{ url_for('book_detail', book_id=book.id) }}">{{ book.title }}</a><small>{{ book.author }} · {{ book.condition }}</small></td>
+        <td>{{ book.listing_type|title }}</td>
+        <td>{% if book.listing_type == 'donation' %}Free{% elif book.listing_type == 'sale' %}₹{{ '%.2f'|format(book.price) }}{% else %}Swap{% endif %}</td>
+        <td><span class="status-pill {% if book.moderation_status == 'rejected' %}status-off{% elif book.moderation_status == 'deleted' %}status-off{% elif book.is_active %}status-live{% else %}status-off{% endif %}">{% if book.moderation_status == 'rejected' %}Rejected{% elif book.moderation_status == 'deleted' %}Removed{% elif book.is_active %}Active{% else %}Hidden{% endif %}</span></td>
+        <td class="admin-row-actions">{% if book.moderation_status == 'approved' %}<a class="small-action" href="{{ url_for('edit_own_book', book_id=book.id) }}">Edit</a><form method="post" action="{{ url_for('toggle_book', book_id=book.id) }}">{{ csrf() }}<button class="small-action" type="submit">{{ 'Hide' if book.is_active else 'Publish' }}</button></form><form method="post" action="{{ url_for('delete_own_book', book_id=book.id) }}" data-confirm="Remove this book from your listings?">{{ csrf() }}<button class="small-action danger-action" type="submit">Delete</button></form>{% else %}<span class="muted">Contact support</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody></table></div>
+    {% else %}<p class="empty-inline">{% if listing_filter %}No {{ listing_filter }} books listed yet.{% else %}You have not listed a book yet.{% endif %} <a href="{{ url_for('donate') }}">Share one with the community.</a></p>{% endif %}
+  </section>
+  <section class="dashboard-section" id="my-requests">
+    <div class="section-heading"><div><p class="eyebrow">Looking for a read</p><h2>My requests</h2></div><span class="count-pill">{{ my_requests|length }}</span></div>
+    {% if my_requests %}
+    <div class="table-wrap"><table><thead><tr><th>Book</th><th>Category</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      {% for item in my_requests %}<tr><td>{% if item.attachment_filename %}<img class="dashboard-book-thumb" src="{{ url_for('uploaded_image', filename=item.attachment_filename) }}" alt="Image attached to the request for {{ item.title }}" loading="lazy">{% endif %}{{ item.title }}{% if item.author %}<small>by {{ item.author }}</small>{% endif %}</td><td>{{ item.category }}</td><td>{{ item.location }}</td><td><span class="status-pill {% if item.is_active %}status-live{% else %}status-off{% endif %}">{{ 'Open' if item.is_active else 'Closed' }}</span></td><td class="admin-row-actions"><a class="small-action" href="{{ url_for('edit_request', request_id=item.id) }}">Edit</a><form method="post" action="{{ url_for('toggle_request', request_id=item.id) }}">{{ csrf() }}<button class="small-action" type="submit">{{ 'Close' if item.is_active else 'Reopen' }}</button></form><form method="post" action="{{ url_for('delete_own_request', request_id=item.id) }}" data-confirm="Remove this book request?">{{ csrf() }}<button class="small-action danger-action" type="submit">Delete</button></form></td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<p class="empty-inline">No requests from you yet. <a href="{{ url_for('requests_page') }}">Post a book request.</a></p>{% endif %}
+  </section>
+  <section class="dashboard-section">
+    <div class="section-heading"><div><p class="eyebrow">Trade stories</p><h2>Exchange offers received</h2></div><span class="count-pill">{{ offers_received|length }}</span></div>
+    {% if offers_received %}<div class="offer-list">{% for offer in offers_received %}<article class="offer-row"><div><h3>{{ offer.offered_title }} <span class="muted">for</span> {{ offer.target_title }}</h3><p>From {{ offer.sender_name }}{% if offer.message %} · “{{ offer.message }}”{% endif %}</p><span class="status-pill status-{{ offer.status }}">{{ offer.status|title }}</span></div>{% if offer.status == 'pending' %}<div class="offer-actions"><form method="post" action="{{ url_for('decide_exchange', offer_id=offer.id, decision='accept') }}">{{ csrf() }}<button class="button button-small" type="submit">Accept</button></form><form method="post" action="{{ url_for('decide_exchange', offer_id=offer.id, decision='reject') }}">{{ csrf() }}<button class="small-action" type="submit">Reject</button></form></div>{% endif %}</article>{% endfor %}</div>
+    {% else %}<p class="empty-inline">No offers received yet.</p>{% endif %}
+  </section>
+  <section class="dashboard-section">
+    <div class="section-heading"><div><p class="eyebrow">Your offers</p><h2>Exchange status</h2></div><span class="count-pill">{{ offers_sent|length }}</span></div>
+    {% if offers_sent %}<div class="table-wrap"><table><thead><tr><th>Your book</th><th>Requested book</th><th>Status</th></tr></thead><tbody>{% for offer in offers_sent %}<tr><td>{{ offer.offered_title }}</td><td>{{ offer.target_title }}</td><td><span class="status-pill status-{{ offer.status }}">{{ offer.status|title }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="empty-inline">Offers you make will appear here.</p>{% endif %}
+  </section>
+  <section class="dashboard-section">
+    <div class="section-heading"><div><p class="eyebrow">Keep in touch</p><h2>Recent messages</h2></div><a class="text-link" href="{{ url_for('messages') }}">All messages →</a></div>
+    {% if enquiries %}<div class="offer-list">{% for enquiry in enquiries[:5] %}<article class="offer-row"><div><h3>{{ enquiry.book_title }}</h3><p>{% if enquiry.sender_id == current_user['id'] %}To {{ enquiry.recipient_name }}{% else %}From {{ enquiry.sender_name }}{% endif %} · {{ enquiry.message }}</p>{% if enquiry.attachment_filename %}<img class="dashboard-attachment" src="{{ url_for('uploaded_image', filename=enquiry.attachment_filename) }}" alt="Image attached to the enquiry for {{ enquiry.book_title }}" loading="lazy">{% endif %}<small>{{ enquiry.created_at[:10] }}</small></div><a class="button button-small" href="{{ url_for('conversation', enquiry_id=enquiry.id) }}">Chat / Reply{% if enquiry.unread_count %} ({{ enquiry.unread_count }}){% endif %}</a></article>{% endfor %}</div>
+    {% else %}<p class="empty-inline">Book enquiries you send or receive appear here.</p>{% endif %}
+  </section>
+  <section class="dashboard-section" id="support-tickets">
+    <div class="section-heading"><div><p class="eyebrow">Help when you need it</p><h2>Recent support tickets</h2></div><a class="text-link" href="{{ url_for('support_tickets') }}">All tickets →</a></div>
+    {% if tickets %}<div class="table-wrap"><table><thead><tr><th>Subject</th><th>Status</th><th>Updated</th></tr></thead><tbody>{% for ticket in tickets %}<tr><td><a class="table-link" href="{{ url_for('support_ticket', ticket_id=ticket.id) }}">{{ ticket.subject }}</a></td><td><span class="status-pill status-ticket-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span></td><td>{{ ticket.updated_at[:10] }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<p class="empty-inline">No tickets yet. <a href="{{ url_for('support') }}">Contact customer support.</a></p>{% endif %}
+  </section>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+instance/*.db
+instance/*.db-*
+instance/*.sqlite
+instance/*.sqlite-*
+instance/*.sqlite3
+instance/*.sqlite3-*
+instance/uploads/
+instance/admin_exports/
+private_exports/

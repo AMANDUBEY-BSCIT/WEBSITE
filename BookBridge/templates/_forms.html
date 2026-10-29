@@ -1,0 +1,2 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+{% macro field(name, label, kind='text', required=true, placeholder='', autocomplete='') %}<label class="form-field" for="{{ name }}"><span>{{ label }}</span><input id="{{ name }}" name="{{ name }}" type="{{ kind }}" maxlength="254" {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %} {% if required %}required{% endif %}></label>{% endmacro %}

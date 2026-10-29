@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<section class="container auth-page">
+  <div class="auth-art auth-art-signup">
+    <p class="eyebrow eyebrow-light">A better kind of bookshelf</p>
+    <h1>Read. Share.<br><em>Repeat.</em></h1>
+    <div class="auth-book-stack"><span></span><span></span><span></span></div>
+  </div>
+  <div class="auth-form">
+    <p class="eyebrow">Register</p>
+    <h2>Create your account</h2>
+    <form method="post" class="stack-form" autocomplete="off" novalidate data-auth-form data-clear-on-load="{{ 'true' if request.method == 'GET' else 'false' }}">
+      {{ csrf() }}
+      <label class="form-field" for="register-name">
+        <span>Full name</span>
+        <input id="register-name" name="name" required maxlength="80" autocomplete="name" value="{{ form_name }}" aria-invalid="{{ 'true' if field_errors.get('name') else 'false' }}" {% if field_errors.get('name') %}aria-describedby="register-name-error" autofocus{% endif %}>
+        {% if field_errors.get('name') %}<span id="register-name-error" class="field-error" role="alert">{{ field_errors.name }}</span>{% endif %}
+      </label>
+      <label class="form-field" for="register-email">
+        <span>Email address</span>
+        <input id="register-email" name="email" type="email" required maxlength="254" autocomplete="email" value="{{ form_email }}" aria-invalid="{{ 'true' if field_errors.get('email') else 'false' }}" {% if field_errors.get('email') %}aria-describedby="register-email-error"{% if not field_errors.get('name') %} autofocus{% endif %}{% endif %}>
+        {% if field_errors.get('email') %}<span id="register-email-error" class="field-error" role="alert">{{ field_errors.email }}</span>{% endif %}
+      </label>
+      <div class="form-field">
+        <label class="auth-field-label" for="register-password">Password <small>(at least 8 characters; use 3 character types)</small></label>
+        <span class="password-input-wrap {% if field_errors.get('password') %}has-error{% endif %}">
+          <input id="register-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-invalid="{{ 'true' if field_errors.get('password') else 'false' }}" {% if field_errors.get('password') %}aria-describedby="register-password-error"{% if not field_errors.get('name') and not field_errors.get('email') %} autofocus{% endif %}{% endif %}>
+          <button class="password-toggle" type="button" data-password-toggle aria-controls="register-password" aria-label="Show password" aria-pressed="false">
+            <svg class="icon" aria-hidden="true" data-eye-visible><use href="#icon-eye"></use></svg>
+            <svg class="icon" aria-hidden="true" data-eye-hidden hidden><use href="#icon-eye-off"></use></svg>
+          </button>
+        </span>
+        {% if field_errors.get('password') %}<span id="register-password-error" class="field-error" role="alert">{{ field_errors.password }}</span>{% endif %}
+      </div>
+      <div class="form-field">
+        <label class="auth-field-label" for="register-confirm-password">Confirm password</label>
+        <span class="password-input-wrap {% if field_errors.get('confirm_password') %}has-error{% endif %}">
+          <input id="register-confirm-password" name="confirm_password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-invalid="{{ 'true' if field_errors.get('confirm_password') else 'false' }}" {% if field_errors.get('confirm_password') %}aria-describedby="register-confirm-password-error"{% if not field_errors.get('name') and not field_errors.get('email') and not field_errors.get('password') %} autofocus{% endif %}{% endif %}>
+          <button class="password-toggle" type="button" data-password-toggle aria-controls="register-confirm-password" aria-label="Show password" aria-pressed="false">
+            <svg class="icon" aria-hidden="true" data-eye-visible><use href="#icon-eye"></use></svg>
+            <svg class="icon" aria-hidden="true" data-eye-hidden hidden><use href="#icon-eye-off"></use></svg>
+          </button>
+        </span>
+        {% if field_errors.get('confirm_password') %}<span id="register-confirm-password-error" class="field-error" role="alert">{{ field_errors.confirm_password }}</span>{% endif %}
+      </div>
+      <button class="button" type="submit">Register</button>
+    </form>
+    <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+  </div>
+</section>
+{% endblock %}

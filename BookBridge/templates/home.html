@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% from '_icon.html' import icon %}
+{% block title %}Find a book to take home{% endblock %}
+{% block content %}
+<section class="hero-band home-hero">
+  <div class="container hero-layout">
+    <div class="hero-copy">
+      <p class="eyebrow eyebrow-light"><span class="eyebrow-line"></span>A community-powered bookshelf</p>
+      <h1>Find a book to take home.</h1>
+      <p class="hero-text">Pass on a story, discover your next favourite, and make reading more accessible for everyone.</p>
+      <p class="hero-note"><span class="note-dot"></span>Books shared by readers, for readers</p>
+    </div>
+    <div class="hero-art" role="img" aria-label="A colorful stack of books ready for a new reader">
+      <div class="art-sun"></div>
+      <div class="art-book art-book-back">THE ART OF<br>BEGINNING</div>
+      <div class="art-book art-book-mid">A FIELD<br>OF STORIES</div>
+      <div class="art-book art-book-front"><span>little<br>green<br>worlds</span></div>
+    </div>
+  </div>
+</section>
+<section class="home-actions-section" aria-label="Ways to use BookBridge">
+  <div class="container">
+    <div class="home-action-grid">
+      <a class="home-action-card action-browse" href="{{ url_for('browse') }}">
+        <span class="action-icon">{{ icon('shelf') }}</span><span class="action-title">Browse Books</span>
+        <span class="action-description">Explore books shared by the community.</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="home-action-card action-donate" href="{{ url_for('donate') }}">
+        <span class="action-icon">{{ icon('book-heart') }}</span><span class="action-title">Donate a Book</span>
+        <span class="action-description">Give your books a new home.</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="home-action-card action-request" href="{{ url_for('requests_page') }}">
+        <span class="action-icon">{{ icon('plus-book') }}</span><span class="action-title">Request a Book</span>
+        <span class="action-description">Request books from other readers.</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="home-action-card action-exchange" href="{{ url_for('list_exchange') }}">
+        <span class="action-icon">{{ icon('repeat') }}</span><span class="action-title">Exchange Books</span>
+        <span class="action-description">Swap books with other readers.</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="home-action-card action-sell" href="{{ url_for('low_cost') }}">
+        <span class="action-icon">{{ icon('tag') }}</span><span class="action-title">Books Under ₹200</span>
+        <span class="action-description">Discover affordable books.</span><span class="action-arrow" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="home-search-section">
+  <div class="container home-search-wrap">
+    <form class="home-search" method="get" action="{{ url_for('browse') }}">
+      <div class="home-search-query"><label class="sr-only" for="home-book-search">Search books by title, author or keyword</label><span aria-hidden="true">⌕</span><input id="home-book-search" type="search" name="q" maxlength="100" placeholder="Search by title, author or keyword"></div>
+      <label class="sr-only" for="home-category-filter">Category</label><select id="home-category-filter" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select>
+      <label class="sr-only" for="home-condition-filter">Book condition</label><select id="home-condition-filter" name="condition"><option value="">Any condition</option>{% for condition in conditions %}<option value="{{ condition }}">{{ condition }}</option>{% endfor %}</select>
+      <label class="sr-only" for="home-type-filter">Sharing method</label><select id="home-type-filter" name="type"><option value="">All sharing methods</option><option value="donation">Donation</option><option value="exchange">Exchange</option><option value="sale">For sale</option></select>
+      <label class="sr-only" for="home-location-filter">City or area</label><input id="home-location-filter" type="search" name="location" maxlength="80" placeholder="City or area">
+      <div class="home-search-actions"><button class="button button-small" type="submit">Search</button><a class="home-clear-filter" href="{{ url_for('browse') }}">Clear filters</a></div>
+    </form>
+  </div>
+</section>
+<section class="section-pad featured-section">
+  <div class="container">
+    <div class="section-heading">
+      <div><p class="eyebrow">Freshly shared</p><h2>Books looking for a reader</h2></div>
+      <a class="text-link" href="{{ url_for('browse') }}">Browse the collection →</a>
+    </div>
+    {% if featured %}
+    <div class="book-grid">{% for book in featured %}{% include '_book_card.html' %}{% endfor %}</div>
+    {% else %}
+    <div class="empty-panel"><span class="empty-icon">✳</span><h3>Your next favourite is waiting to be listed.</h3><p>There are no books in the community yet. Be the first to share one.</p><a class="button button-small" href="{{ url_for('donate') if current_user else url_for('signup') }}">List the first book</a></div>
+    {% endif %}
+  </div>
+</section>
+<section class="section-pad home-categories">
+  <div class="container">
+    <div class="section-heading"><div><p class="eyebrow">Find your shelf</p><h2>Follow your curiosity</h2></div></div>
+    <div class="category-grid">
+      {% for category in categories %}
+      <a class="category-item" href="{{ url_for('browse', category=category) }}"><span class="category-number">{{ '%02d'|format(loop.index) }}</span><span class="category-name">{{ category }}</span><span class="category-count">{{ category_counts.get(category, 0) }} books ↗</span></a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="home-how-section">
+  <div class="container">
+    <div class="section-heading"><div><p class="eyebrow">Better stories, shared</p><h2>How BookBridge works</h2></div></div>
+    <div class="home-how-grid">
+      <article><span>01</span><h3>Find a story</h3><p>Search the community bookshelf for a book that feels just right.</p></article>
+      <article><span>02</span><h3>Connect directly</h3><p>Message the reader and agree on a convenient hand-off.</p></article>
+      <article><span>03</span><h3>Pass it forward</h3><p>Donate, exchange or list a book so another reader can enjoy it.</p></article>
+    </div>
+  </div>
+</section>
+{% endblock %}

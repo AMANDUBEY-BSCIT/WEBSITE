@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Reported Messages{% endblock %}
+{% block content %}
+<section class="dashboard-head admin-head"><div class="container"><p class="eyebrow eyebrow-light">Restricted moderation area</p><h1>Reported messages</h1><p>Review only messages explicitly reported by a conversation participant.</p></div></section>
+<section class="container dashboard-content admin-content">
+  <form class="admin-filter-form" method="get" action="{{ url_for('admin_message_reports') }}"><label class="sr-only" for="report-status">Report status</label><select id="report-status" name="status"><option value="">All report statuses</option>{% for status in ('Open','Reviewed','Removed') %}<option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select><button class="button button-small" type="submit">Filter</button></form>
+  {% if reports %}<div class="offer-list">{% for report in reports %}
+  <article class="offer-row report-card" id="report-{{ report.id }}"><div><h2>{{ report.book_title }}</h2><p class="report-quoted-message">{{ report.body }}</p><p><strong>Sender:</strong> {{ report.sender_name }} · <strong>Reported by:</strong> {{ report.reporter_name }}</p><p><strong>Reason:</strong> {{ report.reason }}</p><p><span class="status-pill status-ticket-{{ report.status|lower }}">{{ report.status }}</span> · {{ report.created_at[:16] }}</p>{% if report.is_hidden %}<p class="muted">This message is hidden from conversation participants.</p>{% endif %}</div>
+    <div class="offer-actions">
+      {% if report.status == 'Open' %}<form method="post">{{ csrf() }}<input type="hidden" name="report_id" value="{{ report.id }}"><input type="hidden" name="action" value="review"><button class="small-action" type="submit">Mark reviewed</button></form>{% endif %}
+      {% if not report.is_hidden %}<form method="post" data-confirm="Hide this message from both conversation participants?">{{ csrf() }}<input type="hidden" name="report_id" value="{{ report.id }}"><input type="hidden" name="action" value="remove"><button class="small-action danger-action" type="submit">Remove message</button></form>{% endif %}
+    </div>
+  </article>
+  {% endfor %}</div>{% else %}<p class="empty-inline">No reported messages match these filters.</p>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<section class="container form-page profile-page">
+  <div class="form-intro"><p class="eyebrow">Your reader account</p><h1>My <em>profile.</em></h1><p>Keep your contact details up to date so readers and BookBridge support can reach you.</p></div>
+  <form class="form-panel" method="post">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="form-field"><span>Name</span><input name="name" maxlength="80" required autocomplete="name" value="{{ request.form.get('name', profile_user.name) }}"></label>
+      <label class="form-field"><span>Email</span><input name="email" type="email" maxlength="254" required autocomplete="email" value="{{ request.form.get('email', profile_user.email) }}"></label>
+    </div>
+    <p class="profile-member-since">BookBridge member since {{ profile_user.created_at[:10] }}</p>
+    <div class="form-actions"><button class="button" type="submit">Save profile</button><a class="text-link" href="{{ url_for('change_password') }}">Change password</a><a class="text-link" href="{{ url_for('dashboard') }}">Back to dashboard</a></div>
+  </form>
+</section>
+{% endblock %}

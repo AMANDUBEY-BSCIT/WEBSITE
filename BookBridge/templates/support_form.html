@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Contact Customer Support{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow">Private customer support</p>
+    <h1>How can we help?</h1>
+    <p>Submit a ticket and continue the conversation privately from your account.</p>
+  </div>
+</section>
+<section class="container support-layout">
+  <div>
+    <p class="eyebrow">Your tickets</p>
+    <h2>Recent support requests</h2>
+    <p>Your tickets and replies are private to you and authorized administrators.</p>
+    <a class="button button-outline" href="{{ url_for('support_tickets') }}">View my support tickets</a>
+  </div>
+  <form class="form-panel support-form" method="post">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="form-field" for="support-name"><span>Name</span><input id="support-name" name="name" value="{{ current_user['name'] }}" autocomplete="name" readonly></label>
+      <label class="form-field" for="support-email"><span>Email</span><input id="support-email" name="email" type="email" value="{{ current_user['email'] }}" autocomplete="email" readonly></label>
+      <label class="form-field" for="support-category"><span>Issue category</span>
+        <select id="support-category" name="category" required>
+          <option value="">Choose a category</option>
+          {% for category in support_categories %}<option value="{{ category }}" {% if request.form.get('category') == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="form-field" for="support-book"><span>Related book or listing (optional)</span>
+        <select id="support-book" name="book_id">
+          <option value="">No related listing</option>
+          {% for book in books %}<option value="{{ book.id }}" {% if request.form.get('book_id') == book.id|string %}selected{% endif %}>{{ book.title }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="form-field form-field-wide" for="support-subject"><span>Subject</span><input id="support-subject" name="subject" maxlength="120" required value="{{ request.form.get('subject', '') }}"></label>
+      <label class="form-field form-field-wide" for="support-description"><span>Detailed description</span><textarea id="support-description" name="description" rows="7" maxlength="5000" required>{{ request.form.get('description', '') }}</textarea><small>Do not include your password or payment credentials.</small></label>
+    </div>
+    <button class="button" type="submit">Submit support ticket</button>
+  </form>
+</section>
+{% endblock %}

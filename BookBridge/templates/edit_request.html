@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Edit book request{% endblock %}
+{% block content %}
+<section class="container form-page">
+  <div class="form-intro"><p class="eyebrow">{% if is_admin %}Administrator moderation{% else %}Your community request{% endif %}</p><h1>Edit a book <em>request.</em></h1>{% if is_admin %}<p>Request owner: {{ item.owner_name }} · {{ item.owner_email }}</p>{% endif %}</div>
+  <form class="form-panel" method="post">
+    {{ csrf() }}
+    <div class="form-grid">
+      <label class="form-field"><span>Book title</span><input name="title" maxlength="120" required value="{{ request.form.get('title', item.title) }}"></label>
+      <label class="form-field"><span>Author (if known)</span><input name="author" maxlength="100" value="{{ request.form.get('author', item.author) }}"></label>
+      <label class="form-field"><span>Category</span><select name="category" required>{% for category in categories %}<option value="{{ category }}" {% if request.form.get('category', item.category) == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select></label>
+      <label class="form-field"><span>City or area</span><input name="location" maxlength="100" required value="{{ request.form.get('location', item.location) }}"></label>
+      <label class="form-field form-field-wide"><span>Details</span><textarea name="message" rows="5" maxlength="500">{{ request.form.get('message', item.message) }}</textarea></label>
+    </div>
+    <div class="form-actions"><button class="button" type="submit">Save request</button><a class="text-link" href="{{ url_for('admin_dashboard') if is_admin else url_for('dashboard') }}">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}

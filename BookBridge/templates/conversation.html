@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Chat about {{ enquiry.book_title }}{% endblock %}
+{% block content %}
+<section class="dashboard-head">
+  <div class="container">
+    <p class="eyebrow eyebrow-light">Private conversation</p>
+    <h1>{{ enquiry.book_title }}</h1>
+    <p>Chatting with {{ other_participant }} about this listing.</p>
+  </div>
+</section>
+<section class="container message-content">
+  <div class="conversation-toolbar">
+    <a class="text-link" href="{{ url_for('messages') }}">← All messages</a>
+    <a class="text-link" href="{{ url_for('book_detail', book_id=enquiry.book_id) }}">View book listing</a>
+  </div>
+  <div class="message-thread" aria-live="polite">
+    <article class="message-bubble {% if current_user['id'] == enquiry.sender_id %}message-own{% endif %}">
+      <div class="message-meta">
+        <strong>{{ enquiry.buyer_name }}</strong>
+        <span>Original enquiry · <time datetime="{{ enquiry.created_at }}">{{ enquiry.created_at }}</time></span>
+      </div>
+      <p>{{ enquiry.message }}</p>
+      {% if enquiry.attachment_filename %}
+        <img class="conversation-attachment" src="{{ url_for('uploaded_image', filename=enquiry.attachment_filename) }}" alt="Image attached to the original enquiry" loading="lazy">
+      {% endif %}
+    </article>
+    {% for message in messages %}
+      <article class="message-bubble {% if message.sender_id == current_user['id'] %}message-own{% endif %}">
+        <div class="message-meta">
+          <strong>{{ message.sender_name }}</strong>
+          <time datetime="{{ message.created_at }}">{{ message.created_at }}</time>
+        </div>
+        <p>{{ message.body }}</p>
+        {% if message.sender_id != current_user['id'] %}
+        <details class="message-report">
+          <summary>Report this message</summary>
+          <form method="post" action="{{ url_for('report_message', enquiry_id=enquiry.id, message_id=message.id) }}">
+            {{ csrf() }}
+            <label class="sr-only" for="report-reason-{{ message.id }}">Why are you reporting this message?</label>
+            <input id="report-reason-{{ message.id }}" name="reason" maxlength="1000" required placeholder="Briefly explain the concern">
+            <button class="small-action" type="submit">Send report</button>
+          </form>
+        </details>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+  <form class="message-compose" method="post" action="{{ url_for('conversation', enquiry_id=enquiry.id) }}">
+    {{ csrf() }}
+    <label class="form-field" for="message-body">
+      <span>Reply to {{ other_participant }}</span>
+      <textarea id="message-body" name="body" rows="4" maxlength="2000" required placeholder="Write a message about this book"></textarea>
+    </label>
+    <button class="button" type="submit">Send message</button>
+  </form>
+</section>
+{% endblock %}

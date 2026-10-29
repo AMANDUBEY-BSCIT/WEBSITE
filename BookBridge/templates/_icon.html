@@ -1,0 +1,3 @@
+{% macro icon(name, extra_class='') -%}
+<svg class="icon {{ extra_class }}" aria-hidden="true"><use href="#icon-{{ name }}"></use></svg>
+{%- endmacro %}

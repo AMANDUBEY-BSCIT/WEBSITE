@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% from '_forms.html' import csrf %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<section class="container auth-page">
+  <div class="auth-art">
+    <p class="eyebrow eyebrow-light">Welcome back</p>
+    <h1>Your next chapter<br>starts <em>here.</em></h1>
+    <div class="auth-book-stack"><span></span><span></span><span></span></div>
+  </div>
+  <div class="auth-form">
+    <p class="eyebrow">BookBridge account</p>
+    <h2>Log in</h2>
+    <form method="post" class="stack-form" autocomplete="off" novalidate data-auth-form data-clear-on-load="{{ 'true' if request.method == 'GET' else 'false' }}">
+      {{ csrf() }}
+      <label class="form-field" for="login-email">
+        <span>Email address</span>
+        <input id="login-email" name="email" type="email" autocomplete="off" required maxlength="254" value="{{ form_email }}" aria-invalid="{{ 'true' if field_errors.get('email') else 'false' }}" {% if field_errors.get('email') %}aria-describedby="login-email-error"{% endif %} {% if focus_field == 'email' %}autofocus{% endif %}>
+        {% if field_errors.get('email') %}<span id="login-email-error" class="field-error" role="alert">{{ field_errors.email }}</span>{% endif %}
+      </label>
+      <div class="form-field">
+        <label class="auth-field-label" for="login-password">Password</label>
+        <span class="password-input-wrap {% if field_errors.get('password') %}has-error{% endif %}">
+          <input id="login-password" name="password" type="password" autocomplete="new-password" required maxlength="128" aria-invalid="{{ 'true' if field_errors.get('password') else 'false' }}" {% if field_errors.get('password') %}aria-describedby="login-password-error"{% endif %} {% if focus_field == 'password' %}autofocus{% endif %}>
+          <button class="password-toggle" type="button" data-password-toggle aria-controls="login-password" aria-label="Show password" aria-pressed="false">
+            <svg class="icon" aria-hidden="true" data-eye-visible><use href="#icon-eye"></use></svg>
+            <svg class="icon" aria-hidden="true" data-eye-hidden hidden><use href="#icon-eye-off"></use></svg>
+          </button>
+        </span>
+        {% if field_errors.get('password') %}<span id="login-password-error" class="field-error" role="alert">{{ field_errors.password }}</span>{% endif %}
+      </div>
+      <button class="button" type="submit">Log in</button>
+    </form>
+    <p class="auth-switch"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
+    <p class="auth-switch">New to BookBridge? <a href="{{ url_for('signup') }}">Create an account</a></p>
+  </div>
+</section>
+{% endblock %}
